@@ -1,0 +1,92 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garbage Detection</title>
+</head>
+<body>
+    <form action="/predict" method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Predict">
+    </form>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garbage Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Garbage Detection</h1>
+        <form id="upload-form" action="/predict" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" id="file-upload" accept="image/*" required>
+            <button type="submit"  id="upload-btn">Upload , Predict & Send Location</button>
+            <!-- <button type="submit" >Upload , Predict & Send Location</button>  -->
+        </form>
+        <div id="result-container" style="display: none;">
+            <h2>Prediction Result:</h2>
+            <p id="prediction"></p>
+            <img id="uploaded-image" src="#" alt="Uploaded Image" style="display: none; max-width: 100%;">
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#upload-form').submit(function(event) {
+                event.preventDefault();
+                var formData = new FormData(this);
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: $(this).attr('method'),
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#prediction').text(response.result+" Garbage");
+                        $('#result-container').show();
+                        $('#uploaded-image').attr('src', URL.createObjectURL($('#file-upload')[0].files[0])).show();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        document.getElementById('upload-btn').addEventListener('click', function() {
+            // Fetch user's location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+                    
+                    // Send location data along with uploaded image
+                    var formData = new FormData();
+                    formData.append('file', document.getElementById('file-upload').files[0]);
+                    formData.append('latitude', latitude);
+                    formData.append('longitude', longitude);
+                    
+                    // Send data to server using fetch or XMLHttpRequest
+                    fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log(data))
+                    .catch(error => console.error('Error:', error));
+                });
+            } else {
+                alert('Geolocation is not supported by your browser.');
+            }
+        });
+        </script>
+        
+</body>
+</html>
